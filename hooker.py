@@ -192,7 +192,7 @@ def createHookingEnverment(packageName, mainActivity):
         createFile(packageName + "/edit_text.js", run_env.edit_text_jscode)
         createFile(packageName + "/text_view.js", run_env.text_view_jscode)
         createFile(packageName + "/click.js", run_env.click_jscode)
-        createFile(packageName + "/hook_RN.js", run_env.hook_RN_jscode)
+        createFile(packageName + "/hook_register_natives.js", run_env.hook_RN_jscode)
         createFile(packageName + "/keystore_dump.js", run_env.keystore_dump_jscode)
         createFile(packageName + "/dump_dex.js", run_env.dump_dex_jscode)
         createFile(packageName + "/android_ui.js", run_env.android_ui_jscode.replace("com.smile.gifmaker", packageName))
@@ -205,6 +205,7 @@ def createHookingEnverment(packageName, mainActivity):
         createFile(packageName + "/find_anit_frida_so.js", run_env.find_anit_frida_so_jscode)
         createFile(packageName + "/hook_jni_method_trace.js", run_env.hook_jni_method_trace_jscode)
         createFile(packageName + "/replace_dlsym_get_pthread_create.js", run_env.replace_dlsym_get_pthread_create_jscode)
+        createFile(packageName + "/find_boringssl_custom_verify_func.js", run_env.find_boringssl_custom_verify_func_jscode)
 
 def hookJs(target, hookCmdArg, savePath = None):
     online_session = None
