@@ -11,22 +11,25 @@
 hooker是一个基于frida实现的逆向工具包。为逆向开发人员提供统一化的脚本包管理方式、通杀脚本、自动化生成hook脚本、内存漫游探测activity和service、frida版JustTrustMe。
 
 # 最近更新
-##### [自动化生成frida hook脚本](#j---生成指定类的hook脚本)
+#### [frida版just_trust_me 最新支持boringssl unpinning](#11-just_trust_mejs)
+
+#### [自动化生成frida hook脚本](#j---生成指定类的hook脚本)
 
 #### [内存抓包printAndCloneOkhttp3Request(javaObject)](#9-printAndCloneOkhttp3Request)
 
 #### [trace init_proc函数](#13-trace_init_procjs)
 
-#### [hook art_method](#15-hook_artmethod_registerjs)
+#### [更底层的方式hookNative函数注册](#15-hook_artmethod_registerjs)
 
-#### [libmsaoaidsec.so replace_pthread_create](#18-replace_dlsym_get_pthread_createjs)
+#### [frida反调试so查找](#16-find_anit_frida_sojs)
 
-#### [find_boringssl_custom_verify_func](#19-find_boringssl_custom_verify_funcjs)
+#### [对抗dlsym版本的libmsaoaidsec.so](#18-replace_dlsym_get_pthread_createjs)
 
-#### [内部探测类实现由radar做复杂的操作] (https://github.com/CreditTone/radar4hooker)
+#### [查找boringssl验证函数](#19-find_boringssl_custom_verify_funcjs)
+
+#### [radar.dex项目](https://github.com/CreditTone/radar4hooker)
 
 # 锦囊妙计
-* 某音抓包，他把setCTXCustomVerify函数放到了另外一个so，只要spawn hook就可以提取到
 * 如何验证一个函数与手机/用户环境无关？拿两台手机登录不同的帐号，如果调用结果一致就是环境无关函数
 *  目前（2025-04-09） libmsaoaidsec.so 采用了动态dlsym加载pthread_create函数，需要hook dlsym打印堆栈找到调用的地方
 * 可以用lsposed去实现动态加载dex把服务启动起来
@@ -152,51 +155,33 @@ List of devices attached
 FA77C0301476	device
 ```
 
-
-### 4. 手机开发环境部署
+### 4. frida-server部署
 如果你的手机已经启动了frida-server，可以忽略这步。
 
 注意:部分手机出现部署之后adb连不上的问题，那请使用deploy2.sh。
 
 ```shell
-#以piexl2为例
-stephen@ubuntu:~/hooker$ adb push mobile-deploy/ /sdcard/
 stephen@ubuntu:~/hooker$ adb shell #进入手机命令行界面
 sailfish:/ $ su #进入root权限命令行模式
-sailfish:/ $ sh /sdcard/mobile-deploy/deploy.sh                                                            
+sailfish:/ $ cd /sdcard/mobile-deploy/
+sailfish:/ $ sh deploy2.sh                                             
 disable android firewall.
 start frida-server
-start network adb.
 deploy successfull.
-stephen@ubuntu:~/hooker$ #如果你看到你的adb命令被弹出来了，表示已经正常部署。
+sailfish:/ $ exit
+stephen@ubuntu:~/hooker$ 
 ```
 ![部署演示](assets/hooker-deploy.gif)
 ***
 
-### 5. 指定fridaserver端口的手机开发环境部署
-
-```shell
-stephen@ubuntu:~/hooker$ adb shell #进入手机命令行界面
-sailfish:/ $ su #进入root权限命令行模式
-sailfish:/ $ sh /sdcard/mobile-deploy/deploy.sh 6666  #deploy.sh启动失败的同样可以尝试deploy2.sh                                                   
-disable android firewall.
-set firda_server_bind_port to 6666
-start frida-server
-start network adb.
-deploy successfull.
-stephen@ubuntu:~/hooker$ #如果你看到你的adb命令被弹出来了，表示已经正常部署。
-```
-***
-
 注意：自定义frida server端口的开发环境必须走host:post的方式调试，因为usb默认找27042端口。所以请务必[更改本地.hooker_driver文件](#远程frida支持)，否则hooker无法正常工作。
 
-### 6. 部署之后手机的增强功能
-- 1.关闭iptables防火墙，解决部分手机默认防火墙开启的问题
-- 2.启动frida-server，如果你的手机是arm64他将优先启动arm64位的frida-server
-- 3.在/data/mobile-deploy目录生成tools_env.rc 当你有内网穿透和网络服务转发、编辑文件、检测网络方面的需求时可以执行source /data/mobile-deploy/tools_env.rc，它将临时生成vi、telnet、frpc、tcpforward、ll命令以便你进行更便捷的开发，如图
+### 5. 部署之后手机的增强功能
+- 1.启动frida-server，如果你的手机是arm64他将优先启动arm64位的frida-server
+- 2.在/data/mobile-deploy目录生成tools_env.rc 当你有内网穿透和网络服务转发、编辑文件、检测网络方面的需求时可以执行source /data/mobile-deploy/tools_env.rc，它将临时生成vi、telnet、frpc、tcpforward、ll命令以便你进行更便捷的开发，如图
 ![部署演示](assets/tools_env.gif)
 ***
-- 4.启动网络adb，即你可以直接通过远程adb调试手机。例如:adb connect 192.168.0.105
+- 3.启动网络adb，即你可以直接通过远程adb调试手机。例如:adb connect 192.168.0.105
 ![部署演示](assets/remote_adb.gif)
 ***
 
@@ -430,7 +415,7 @@ frida-kill $HOOKER_DRIVER com.ss.android.ugc.aweme
 ![](assets/hook_RN.gif)
 
 ### 11. just_trust_me.js
-frida版本的just_trust_me。如果你需要bypass sslpinning请执行./spawn just_trust_me.js
+frida版本的just_trust_me，支持boringssl unpinning。执行./spawn just_trust_me.js
 
 下面以Twitter为例，启动just_trust_me.js
 启动演示
